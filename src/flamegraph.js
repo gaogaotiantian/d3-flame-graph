@@ -338,7 +338,17 @@ export default function () {
         }
     }
 
-    var p = partition()
+    var p = function (root) {
+        partition()(root)
+        var nodeList = root.descendants()
+        for (const node of nodeList) {
+            if (node.parent && !node.parent.data.fade) {
+                const width = node.x1 - node.x0
+                node.x0 = node.parent.x0 + (node.data.entry - node.parent.data.entry) / (node.parent.data.exit - node.parent.data.entry) * (node.parent.x1 - node.parent.x0)
+                node.x1 = node.x0 + width
+            }
+        }
+    }
 
     function filterNodes (root) {
         var nodeList = root.descendants()
