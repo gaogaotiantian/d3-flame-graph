@@ -29,6 +29,7 @@ export default function () {
     var resetHeightOnZoom = false
     var scrollOnZoom = false
     var minHeight = null
+    var currNode = null
 
     var getName = function (d) {
         return d.data.n || d.data.name
@@ -177,7 +178,7 @@ export default function () {
             // calculate hash
             var vector = 0
             if (name) {
-                var nameArr = name.split('`')
+                var nameArr = name.split('.')
                 if (nameArr.length > 1) {
                     name = nameArr[nameArr.length - 1] // drop module name if present
                 }
@@ -259,6 +260,7 @@ export default function () {
         hideSiblings(d)
         show(d)
         fadeAncestors(d)
+        currNode = d
         update()
         if (scrollOnZoom) {
             const chartOffset = svg._groups[0][0].parentNode.offsetTop
@@ -272,6 +274,37 @@ export default function () {
         }
         if (typeof clickHandler === 'function') {
             clickHandler(d)
+        }
+    }
+
+    function zoomToSibling (direction) {
+        if (!currNode.parent) {
+            return
+        }
+        var i = 0
+        if (direction === 'next') {
+            i = 0
+        } else if (direction === 'prev') {
+            i = currNode.parent.children.length - 1
+        }
+        while (i >= 0 && i < currNode.parent.children.length) {
+            if (currNode.parent.children[i] === currNode) {
+                if (direction === 'next') {
+                    i += 1
+                } else {
+                    i -= 1
+                }
+                if (i >= 0 && i < currNode.parent.children.length) {
+                    currNode = currNode.parent.children[i]
+                    zoom(currNode)
+                }
+                break
+            }
+            if (direction === 'next') {
+                i += 1
+            } else {
+                i -= 1
+            }
         }
     }
 
@@ -630,6 +663,7 @@ export default function () {
             }
         })
 
+        currNode = root
         // first draw
         update()
     }
@@ -747,6 +781,11 @@ export default function () {
 
     chart.zoomTo = function (d) {
         zoom(d)
+    }
+
+    chart.zoomToSibling = function (direction) {
+        console.log(123)
+        zoomToSibling(direction)
     }
 
     chart.resetZoom = function () {
